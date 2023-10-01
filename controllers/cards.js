@@ -24,7 +24,7 @@ const createCard = (req, res) => {
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(badRequest).send({ message: 'Переданы некорректные данные при создании карточки.' });
+        res.status(badRequest).send({ message: err.message });
       } else {
         res.status(internalServerError).send({ message: 'Ошибка по умолчанию.' });
       }
@@ -34,7 +34,7 @@ const createCard = (req, res) => {
 const deleteCard = (req, res) => {
   const { cardId } = req.params;
 
-  Card.findByIdAndDelete(cardId)
+  Card.findByIdAndDelete(cardId).orFail()
     .then((deletedCard) => {
       res.status(noContent).send(deletedCard);
     })
@@ -51,7 +51,7 @@ const likeCard = (req, res) => {
   const { cardId } = req.params;
   const { _id } = req.user;
 
-  Card.findByIdAndUpdate(cardId, { $addToSet: { likes: _id } }, { new: true })
+  Card.findByIdAndUpdate(cardId, { $addToSet: { likes: _id } }, { new: true }).orFail()
     .then((card) => {
       res.status(ok).send(card);
     })
@@ -70,7 +70,7 @@ const dislikeCard = (req, res) => {
   const { cardId } = req.params;
   const { _id } = req.user;
 
-  Card.findByIdAndUpdate(cardId, { $pull: { likes: _id } }, { new: true })
+  Card.findByIdAndUpdate(cardId, { $pull: { likes: _id } }, { new: true }).orFail()
     .then((card) => {
       res.status(ok).send(card);
     })

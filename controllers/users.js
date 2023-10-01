@@ -17,7 +17,7 @@ const getUsers = (req, res) => {
 const findUserById = (req, res) => {
   const { userId } = req.params;
 
-  User.findById(userId)
+  User.findById(userId).orFail()
     .then((user) => {
       res.status(ok).send(user);
     })
@@ -41,7 +41,7 @@ const createUser = (req, res) => {
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(badRequest).send({ message: 'Переданы некорректные данные при создании пользователя.' });
+        res.status(badRequest).send({ message: err.message });
       } else {
         res.status(internalServerError).send({ message: 'Ошибка по умолчанию.' });
       }
@@ -52,13 +52,13 @@ const updateUser = (req, res) => {
   const { name, about } = req.body;
   const { _id } = req.user;
 
-  User.findByIdAndUpdate(_id, { name, about }, { new: true })
+  User.findByIdAndUpdate(_id, { name, about }, { new: true }).orFail()
     .then((updatedUser) => {
       res.status(ok).send(updatedUser);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(badRequest).send({ message: 'Переданы некорректные данные при обновлении профиля.' });
+        res.status(badRequest).send({ message: err.message });
       } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
         res.status(notFound).send({ message: 'Пользователь с указанным _id не найден.' });
       } else {
@@ -71,13 +71,13 @@ const updateAvatar = (req, res) => {
   const { avatar } = req.body;
   const { _id } = req.user;
 
-  User.findByIdAndUpdate(_id, { avatar }, { new: true })
+  User.findByIdAndUpdate(_id, { avatar }, { new: true }).orFail()
     .then((updatedUser) => {
       res.status(ok).send(updatedUser);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(badRequest).send({ message: 'Переданы некорректные данные при обновлении аватара.' });
+        res.status(badRequest).send({ message: err.message });
       } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
         res.status(notFound).send({ message: 'Пользователь с указанным _id не найден.' });
       } else {

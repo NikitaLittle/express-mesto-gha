@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const helmet = require('helmet');
 const userRoute = require('./routes/users');
 const cardRoute = require('./routes/cards');
 
@@ -11,6 +12,8 @@ mongoose
   .connect(DB_URL, {
     useNewUrlParser: true,
   });
+
+app.use(helmet());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
