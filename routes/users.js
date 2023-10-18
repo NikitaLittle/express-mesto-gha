@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
-const { getUsers, findUserById, updateUser, updateAvatar, getUserInfo } = require('../controllers/users');
+const {
+  getUsers, findUserById, updateUser, updateAvatar, getUserInfo,
+} = require('../controllers/users');
 const regex = require('../utils/constants');
 
 router.get('/users', getUsers);
@@ -14,7 +16,7 @@ router.patch(
       about: Joi.string().min(2).max(30),
     }),
   }),
-  updateUser
+  updateUser,
 );
 router.patch(
   '/users/me/avatar',
@@ -23,7 +25,7 @@ router.patch(
       avatar: Joi.string().pattern(regex),
     }),
   }),
-  updateAvatar
+  updateAvatar,
 );
 
 module.exports = router;

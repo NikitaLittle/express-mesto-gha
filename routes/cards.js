@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
-const { getCards, createCard, deleteCard, likeCard, dislikeCard } = require('../controllers/cards');
+const {
+  getCards, createCard, deleteCard, likeCard, dislikeCard,
+} = require('../controllers/cards');
 const regex = require('../utils/constants');
 
 router.get('/cards', getCards);
@@ -12,7 +14,7 @@ router.post(
       link: Joi.string().pattern(regex),
     }),
   }),
-  createCard
+  createCard,
 );
 router.delete('/cards/:cardId', deleteCard);
 router.put('/cards/:cardId/likes', likeCard);

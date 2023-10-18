@@ -38,7 +38,7 @@ app.post(
       password: Joi.string().required().min(8),
     }),
   }),
-  login
+  login,
 );
 app.post(
   '/signup',
@@ -53,7 +53,7 @@ app.post(
       })
       .unknown(true),
   }),
-  createUser
+  createUser,
 );
 
 app.use(
@@ -62,7 +62,7 @@ app.use(
       token: Joi.string().token(),
     }),
   }),
-  auth
+  auth,
 );
 
 app.use('/', userRoute);
