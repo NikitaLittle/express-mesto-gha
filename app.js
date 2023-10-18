@@ -1,6 +1,5 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const { celebrate, Joi } = require('celebrate');
@@ -10,6 +9,7 @@ const { login, createUser } = require('./controllers/users');
 const { auth } = require('./middlewares/auth');
 const { handleError } = require('./middlewares/handleError');
 const regex = require('./utils/constants');
+const NotFound = require('./errors/NotFound');
 
 const { PORT = 3000, DB_URL = 'mongodb://localhost:27017/mestodb' } = process.env;
 const app = express();
@@ -27,8 +27,8 @@ mongoose
 
 app.use(helmet());
 app.use(cookieParser());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.post(
   '/signin',
@@ -56,17 +56,14 @@ app.post(
   createUser,
 );
 
-app.use(
-  celebrate({
-    cookies: Joi.object().keys({
-      token: Joi.string().token(),
-    }),
-  }),
-  auth,
-);
+app.use(auth);
 
-app.use('/', userRoute);
-app.use('/', cardRoute);
+app.use('/users', userRoute);
+app.use('/cards', cardRoute);
+
+app.use('*', (req, res, next) => {
+  next(new NotFound('Страница не найдена'));
+});
 
 app.use(handleError);
 

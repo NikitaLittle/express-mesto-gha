@@ -5,19 +5,43 @@ const {
 } = require('../controllers/cards');
 const regex = require('../utils/constants');
 
-router.get('/cards', getCards);
+router.get('/', getCards);
 router.post(
-  '/cards',
+  '/',
   celebrate({
     body: Joi.object().keys({
-      name: Joi.string().min(2).max(30),
-      link: Joi.string().pattern(regex),
+      name: Joi.string().required().min(2).max(30),
+      link: Joi.string().required().pattern(regex),
     }),
   }),
   createCard,
 );
-router.delete('/cards/:cardId', deleteCard);
-router.put('/cards/:cardId/likes', likeCard);
-router.delete('/cards/:cardId/likes', dislikeCard);
+router.delete(
+  '/:cardId',
+  celebrate({
+    params: Joi.object().keys({
+      cardId: Joi.string().required(),
+    }),
+  }),
+  deleteCard,
+);
+router.put(
+  '/:cardId/likes',
+  celebrate({
+    params: Joi.object().keys({
+      cardId: Joi.string().required(),
+    }),
+  }),
+  likeCard,
+);
+router.delete(
+  '/:cardId/likes',
+  celebrate({
+    params: Joi.object().keys({
+      cardId: Joi.string().required(),
+    }),
+  }),
+  dislikeCard,
+);
 
 module.exports = router;

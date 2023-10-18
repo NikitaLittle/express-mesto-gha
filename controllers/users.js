@@ -68,7 +68,7 @@ const updateUser = (req, res, next) => {
   const { name, about } = req.body;
   const { _id } = req.user;
 
-  User.findByIdAndUpdate(_id, { name, about }, { new: true })
+  User.findByIdAndUpdate(_id, { name, about }, { new: true, runValidators: true })
     .orFail()
     .then((user) => {
       res.status(ok).send(user);
@@ -88,7 +88,7 @@ const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   const { _id } = req.user;
 
-  User.findByIdAndUpdate(_id, { avatar }, { new: true })
+  User.findByIdAndUpdate(_id, { avatar }, { new: true, runValidators: true })
     .orFail()
     .then((user) => {
       res.status(ok).send(user);

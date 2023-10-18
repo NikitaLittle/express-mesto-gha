@@ -28,6 +28,7 @@ const cardSchema = new Schema(
     likes: {
       type: [ObjectId],
       ref: 'user',
+      default: [],
     },
     createdAt: {
       type: Date,
