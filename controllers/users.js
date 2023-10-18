@@ -1,89 +1,141 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const {
-  ok, created, badRequest, notFound, internalServerError,
-} = require('../utils/constants');
+const { ok, created } = require('../utils/constants');
+const NotFound = require('../errors/NotFound');
+const BadRequest = require('../errors/BadRequest');
+const Conflict = require('../errors/Conflict');
 
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => {
       res.status(ok).send(users);
     })
-    .catch(() => {
-      res.status(internalServerError).send({ message: 'Ошибка по умолчанию.' });
-    });
+    .catch(next);
 };
 
-const findUserById = (req, res) => {
+const findUserById = (req, res, next) => {
   const { userId } = req.params;
 
-  User.findById(userId).orFail()
+  User.findById(userId)
+    .orFail()
     .then((user) => {
       res.status(ok).send(user);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        res.status(badRequest).send({ message: 'Переданы некорректные данные в методы поиска пользователя.' });
+        next(new BadRequest('Переданы некорректные данные в методы поиска пользователя.'));
       } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        res.status(notFound).send({ message: 'Пользователь по указанному _id не найден.' });
+        next(new NotFound('Пользователь по указанному _id не найден.'));
       } else {
-        res.status(internalServerError).send({ message: 'Ошибка по умолчанию.' });
+        next(err);
       }
     });
 };
 
-const createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+const createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
-  User.create({ name, about, avatar })
-    .then((newUser) => {
-      res.status(created).send(newUser);
+  bcrypt.hash(password, 10).then((hash) => {
+    User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
     })
-    .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        res.status(badRequest).send({ message: err.message });
-      } else {
-        res.status(internalServerError).send({ message: 'Ошибка по умолчанию.' });
-      }
-    });
+      .then((user) => {
+        const userWithoutPassword = user.toObject();
+        delete userWithoutPassword.password;
+        res.status(created).send(userWithoutPassword);
+      })
+      .catch((err) => {
+        if (err.code === 11000) {
+          next(new Conflict('Переданы некорректные данные в методы создания пользователя'));
+        } else if (err instanceof mongoose.Error.ValidationError) {
+          next(new BadRequest(err.message));
+        } else {
+          next(err);
+        }
+      });
+  });
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { name, about } = req.body;
   const { _id } = req.user;
 
-  User.findByIdAndUpdate(_id, { name, about }, { new: true }).orFail()
-    .then((updatedUser) => {
-      res.status(ok).send(updatedUser);
+  User.findByIdAndUpdate(_id, { name, about }, { new: true })
+    .orFail()
+    .then((user) => {
+      res.status(ok).send(user);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(badRequest).send({ message: err.message });
+        next(new BadRequest(err.message));
       } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        res.status(notFound).send({ message: 'Пользователь с указанным _id не найден.' });
+        next(new NotFound('Пользователь с указанным _id не найден.'));
       } else {
-        res.status(internalServerError).send({ message: 'Ошибка по умолчанию.' });
+        next(err);
       }
     });
 };
 
-const updateAvatar = (req, res) => {
+const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   const { _id } = req.user;
 
-  User.findByIdAndUpdate(_id, { avatar }, { new: true }).orFail()
-    .then((updatedUser) => {
-      res.status(ok).send(updatedUser);
+  User.findByIdAndUpdate(_id, { avatar }, { new: true })
+    .orFail()
+    .then((user) => {
+      res.status(ok).send(user);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        res.status(badRequest).send({ message: err.message });
+        next(new BadRequest(err.message));
       } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        res.status(notFound).send({ message: 'Пользователь с указанным _id не найден.' });
+        next(NotFound('Пользователь с указанным _id не найден.'));
       } else {
-        res.status(internalServerError).send({ message: 'Ошибка по умолчанию.' });
+        next(err);
       }
     });
+};
+
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+
+      res.cookie('token', token, {
+        maxAge: 604800000, // '7d'
+        httpOnly: true,
+        sameSite: true,
+      });
+
+      res.send(user._id);
+    })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) {
+        next(new BadRequest(err.message));
+      } else {
+        next(err);
+      }
+    });
+};
+
+const getUserInfo = (req, res, next) => {
+  const { _id } = req.user;
+
+  User.findById(_id)
+    .then((user) => {
+      res.send(user);
+    })
+    .catch(next);
 };
 
 module.exports = {
@@ -92,4 +144,6 @@ module.exports = {
   createUser,
   updateUser,
   updateAvatar,
+  login,
+  getUserInfo,
 };

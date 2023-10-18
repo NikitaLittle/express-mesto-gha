@@ -34,7 +34,7 @@ const cardSchema = new Schema(
       default: Date.now,
     },
   },
-  { versionKey: false },
+  { versionKey: false, timestamps: false },
 );
 
 module.exports = model('card', cardSchema);
