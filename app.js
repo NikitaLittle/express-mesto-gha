@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
+const { errors } = require('celebrate');
 const appRoute = require('./routes/index');
 const { handleError } = require('./middlewares/handleError');
 
@@ -26,6 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(appRoute);
 
+app.use(errors());
 app.use(handleError);
 
 app.listen(PORT);

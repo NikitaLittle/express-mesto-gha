@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { ok, created } = require('../utils/constants');
 const NotFound = require('../errors/NotFound');
 const BadRequest = require('../errors/BadRequest');
 const Conflict = require('../errors/Conflict');
@@ -10,7 +9,7 @@ const Conflict = require('../errors/Conflict');
 const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => {
-      res.status(ok).send(users);
+      res.status(200).send(users);
     })
     .catch(next);
 };
@@ -21,7 +20,7 @@ const findUserById = (req, res, next) => {
   User.findById(userId)
     .orFail()
     .then((user) => {
-      res.status(ok).send(user);
+      res.status(200).send(user);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
@@ -50,7 +49,7 @@ const createUser = (req, res, next) => {
       .then((user) => {
         const userWithoutPassword = user.toObject();
         delete userWithoutPassword.password;
-        res.status(created).send(userWithoutPassword);
+        res.status(201).send(userWithoutPassword);
       })
       .catch((err) => {
         if (err.code === 11000) {
@@ -71,7 +70,7 @@ const updateUser = (req, res, next) => {
   User.findByIdAndUpdate(_id, { name, about }, { new: true, runValidators: true })
     .orFail()
     .then((user) => {
-      res.status(ok).send(user);
+      res.status(200).send(user);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
@@ -91,7 +90,7 @@ const updateAvatar = (req, res, next) => {
   User.findByIdAndUpdate(_id, { avatar }, { new: true, runValidators: true })
     .orFail()
     .then((user) => {
-      res.status(ok).send(user);
+      res.status(200).send(user);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
@@ -117,7 +116,7 @@ const login = (req, res, next) => {
         sameSite: true,
       });
 
-      res.send(user._id);
+      res.status(200).send(user._id);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
@@ -133,7 +132,7 @@ const getUserInfo = (req, res, next) => {
 
   User.findById(_id)
     .then((user) => {
-      res.send(user);
+      res.status(200).send(user);
     })
     .catch(next);
 };

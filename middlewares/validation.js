@@ -5,7 +5,7 @@ const validation = {
   signinValidation: celebrate({
     body: Joi.object().keys({
       email: Joi.string().required().email(),
-      password: Joi.string().required().min(8),
+      password: Joi.string().required(),
     }),
   }),
 
@@ -16,14 +16,14 @@ const validation = {
         about: Joi.string().min(3).max(30),
         avatar: Joi.string().pattern(new RegExp(linkRegex)),
         email: Joi.string().required().email(),
-        password: Joi.string().required().min(8),
+        password: Joi.string().required(),
       })
       .unknown(true),
   }),
 
   findUserByIdValidation: celebrate({
     params: Joi.object().keys({
-      userId: Joi.string().required(),
+      userId: Joi.string().hex().required(),
     }),
   }),
 
@@ -49,13 +49,13 @@ const validation = {
 
   deleteCardValidation: celebrate({
     params: Joi.object().keys({
-      cardId: Joi.string().required(),
+      cardId: Joi.string().hex().required(),
     }),
   }),
 
   likeCardValidation: celebrate({
     params: Joi.object().keys({
-      cardId: Joi.string().required(),
+      cardId: Joi.string().hex().required(),
     }),
   }),
 };

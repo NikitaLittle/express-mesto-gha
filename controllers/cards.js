@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const Card = require('../models/card');
-const { ok, created, noContent } = require('../utils/constants');
 const NotFound = require('../errors/NotFound');
 const Forbidden = require('../errors/Forbidden');
 const BadRequest = require('../errors/BadRequest');
@@ -8,7 +7,7 @@ const BadRequest = require('../errors/BadRequest');
 const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => {
-      res.status(ok).send(cards);
+      res.status(200).send(cards);
     })
     .catch(next);
 };
@@ -19,7 +18,7 @@ const createCard = (req, res, next) => {
 
   Card.create({ name, link, owner: _id })
     .then((newCard) => {
-      res.status(created).send(newCard);
+      res.status(201).send(newCard);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
@@ -42,7 +41,7 @@ const deleteCard = (req, res, next) => {
       Card.deleteOne({ _id: card._id })
         .orFail()
         .then(() => {
-          res.status(noContent).send({ message: 'Карточка удалена.' });
+          res.status(204).send({ message: 'Карточка удалена.' });
         })
         .catch(next);
     })
@@ -64,7 +63,7 @@ const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(cardId, { $addToSet: { likes: _id } }, { new: true })
     .orFail()
     .then((card) => {
-      res.status(ok).send(card);
+      res.status(200).send(card);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
@@ -84,7 +83,7 @@ const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(cardId, { $pull: { likes: _id } }, { new: true })
     .orFail()
     .then((card) => {
-      res.status(ok).send(card);
+      res.status(200).send(card);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
