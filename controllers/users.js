@@ -34,9 +34,7 @@ const findUserById = (req, res, next) => {
 };
 
 const createUser = (req, res, next) => {
-  const {
-    name, about, avatar, email, password,
-  } = req.body;
+  const { name, about, avatar, email, password } = req.body;
 
   bcrypt.hash(password, 10).then((hash) => {
     User.create({
@@ -66,6 +64,7 @@ const createUser = (req, res, next) => {
 const updateUser = (req, res, next) => {
   const { name, about } = req.body;
   const { _id } = req.user;
+  console.log(req.body);
 
   User.findByIdAndUpdate(_id, { name, about }, { new: true, runValidators: true })
     .orFail()
@@ -110,13 +109,16 @@ const login = (req, res, next) => {
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
 
-      res.cookie('token', token, {
-        maxAge: 604800000, // '7d'
-        httpOnly: true,
-        sameSite: true,
-      });
+      res.status(200).send({ token });
 
-      res.status(200).send(user._id);
+      // res
+      //   .status(200)
+      //   .cookie('token', token, {
+      //     maxAge: 604800000, // '7d'
+      //     httpOnly: true,
+      //     sameSite: 'None',
+      //   })
+      //   .send(user._id);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {

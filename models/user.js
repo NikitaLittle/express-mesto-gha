@@ -32,9 +32,10 @@ const userSchema = new Schema(
       required: [true, 'Поле "email" должно быть заполнено.'],
       unique: true,
       validate: {
-        validator: (v) => validator.isEmail(v, {
-          allow_utf8_local_part: true,
-        }),
+        validator: (v) =>
+          validator.isEmail(v, {
+            allow_utf8_local_part: true,
+          }),
         message: '',
       },
     },
@@ -44,7 +45,7 @@ const userSchema = new Schema(
       select: false,
     },
   },
-  { versionKey: false, timestamps: false },
+  { versionKey: false, timestamps: false }
 );
 
 userSchema.statics.findUserByCredentials = function findUserByCredentials(email, password) {
